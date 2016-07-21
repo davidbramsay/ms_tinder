@@ -1,0 +1,82 @@
+Open-
+initialize_cardState()
+initialize_cardBin()
+
+
+
+**
+initialize_cardBin()
+ go through cardState and add cards to cardBin that match each cardState, checking
+ date vs current date, and making sure that if previous_completed_activity is today
+ that the previous activity doesn't have a day_break
+
+ go through independent_activities and add cards to cardbin
+
+
+
+
+updateCardBin(lastCard, outcome)-
+if lastCard passed in:
+  update cardBin to match outcome: if we need to move from current activity, do it
+  update cardState
+
+
+
+update_cardState_state(progression_id, stateChange)
+  if stateChange, change state, if mastered update date of mastered
+
+update_cardState_prevDate(progression_id)
+  update progression_id date to currentDate
+
+update_cardState_card(card_id)
+  update progression_id
+
+  if curr_card_id is not curr_card_id update curr_card_id, update prev_activity_complete_date
+
+
+
+
+**
+get_independent_cards()- return independent_activities that match current cardState
+
+  **
+  check_partial_skill(progression_id, card_id)- check in progression if card_id is
+    before/current with cardState curr_card_id, return True if it is, False if not
+
+
+**
+card_index(progression_id, card_id) - get index of card based on card progression and id
+
+**
+get_length_progression(progression_id) - get length of progression_id
+
+**
+outcome = 'success'
+outcome = fail_or_thrown(delay)  #returns 'fail' or 'thrown'
+
+
+updateCardState()
+
+picknextcard(numCards) -
+pick from cardbin based on relative weighting likelihood of each card in cardBin
+- 1 should be twice as likely as 2, should be twice as likely as 3
+- pick numOfCards and updates.  If no cards can go, don't update any.
+
+onSwipeYes-
+
+update cardBin(success, card) - update, see if we've completed one,
+if we have, pull next and update cardState, if next doesn't exist, update cardState with mastery,
+look for new skills to pull cards from that have this prereq. look through independent activities with
+new cardState and update cardbin
+pick one card.
+
+restart timer
+
+onSwipeNo-
+
+choose thrown or failed based on timer
+update cardState(thrown or failed, card)
+update cardBin(success, card)
+
+pick one card.
+restart timer.
