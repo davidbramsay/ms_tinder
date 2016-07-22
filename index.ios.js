@@ -13,6 +13,27 @@ import Video from 'react-native-video';
 import YouTube from 'react-native-youtube';
 var _ = require('lodash');
 
+
+
+var reISO = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*))(?:Z|(\+|-)([\d|:]*))?$/;
+var reMsAjax = /^\/Date\((d|-|.*)\)[\/|\\]$/;
+
+JSON.dateParser = function (key, value) {
+    if (typeof value === 'string') {
+        var a = reISO.exec(value);
+        if (a)
+            return new Date(value);
+        a = reMsAjax.exec(value);
+        if (a) {
+            var b = a[1].split(/[-+,.]/);
+            return new Date(b[0] ? +b[0] : 0 - +b[1]);
+        }
+    }
+    return value;
+};
+
+
+
 let Card = React.createClass({
   render() {
     return (
@@ -21,13 +42,13 @@ let Card = React.createClass({
 
         {this.props.image && <Image style={styles.thumbnail} source={{uri:this.props.image}}/>}
 
-        {this.props.video && <Video source={{uri: this.props.video}} // Can be a URL or a local file. 
-            rate={1.0}                   // 0 is paused, 1 is normal. 
-            volume={1.0}                 // 0 is muted, 1 is normal. 
-            muted={false}                // Mutes the audio entirely. 
-            paused={false}               // Pauses playback entirely. 
-            resizeMode="cover"           // Fill the whole screen at aspect ratio. 
-            repeat={false}                // Repeat forever. 
+        {this.props.video && <Video source={{uri: this.props.video}} // Can be a URL or a local file.
+            rate={1.0}                   // 0 is paused, 1 is normal.
+            volume={1.0}                 // 0 is muted, 1 is normal.
+            muted={false}                // Mutes the audio entirely.
+            paused={false}               // Pauses playback entirely.
+            resizeMode="cover"           // Fill the whole screen at aspect ratio.
+            repeat={false}                // Repeat forever.
             style={styles.backgroundVideo} />}
 
         {this.props.text && <Text style={styles.cardMainText}>{this.props.text}</Text>}
@@ -52,6 +73,96 @@ let NoMoreCards = React.createClass({
 
 var STORAGE_KEY = 'mindsprout:cardState'
 
+
+const activities = [
+
+{id: 'clap', name: 'Clap Your Hands', prereqs:[], max_daily_cards: 20,
+ progression:[
+      {
+      id: 'probe', num_presentations: 3, day_break_if_no_move: true,
+      card: {name: 'Clap Your Hands!', text: "Say 'clap your hands' and see if your child can clap on their own. Don't show them how to do it yet and don't praise them if they get it right. Did they clap on their own within 5 seconds?", backgroundColor:'white', borderColor:'grey'},
+      logic:[ {total_errors: 2, consec_errors: null, goto: 'pprompt1', day_break: false},
+              {total_success: 2, consec_success: null, goto: null, day_break:false} ]
+      },
+
+      {
+      id: 'pprompt1', num_presentations: 3, day_break_if_no_move: true,
+      card: {name: 'Clap Your Hands!', text: "Say 'clap your hands', clap your hands for 2 seconds, and immediately guide your child to clap their hands. Make sure they clap right away, smile and cheerfully describe what they're doing, 'Great clapping!' Do something or give them something they like, such as tickles, kisses, or a preferred toy or treat.", backgroundColor:'white', borderColor:'grey'},
+      logic:[ {total_errors: 2, consec_errors: null, goto: 'pprompt1', day_break: false},
+              {total_success: 2, consec_success: null, goto: 'pprompt2', day_break:false} ]
+      },
+
+      {
+      id: 'pprompt2', num_presentations: 3, day_break_if_no_move: true,
+      card: {name: 'Clap Your Hands!', text: "Say 'clap your hands… do this' and clap your hands for 2 seconds. If they clap, cheer and smile! If they don't clap within 2 seconds, guide their body to help them clap then praise and reward them.", backgroundColor:'white', borderColor:'grey'},
+      logic:[ {total_errors: 2, consec_errors: null, goto: 'pprompt2', day_break: false},
+              {total_success: 2, consec_success: null, goto: 'pprompt3', day_break:false} ]
+      },
+
+      {
+      id: 'pprompt3', num_presentations: 4, day_break_if_no_move: false,
+      card: {name: 'Clap Your Hands!', text: "We are in assess mode. Say 'clap your hands' and see if your child claps on their own. Don't show them how to do it, don't help them. After 5 seconds, ignore what just happened and engage in a different activity. Did they clap on their own within 5 seconds?", backgroundColor:'white', borderColor:'grey'},
+      logic:[ {total_errors: 2, consec_errors: null, goto: 'pprompt2', day_break: false},
+              {total_success: 2, consec_success: null, goto: null, day_break:false} ]
+      }
+ ]},
+
+{id: 'cow', name: 'Cow Sounds', prereqs:[], max_daily_cards: 20,
+ progression:[
+      {
+      id: 'probe', num_presentations: 3, day_break_if_no_move: false,
+      card: {name: 'Animal Sounds', text: "First we'll assess whether your child knows their animal sounds. We'll ask the same question a few times. So, when your child answers, make sure you don't praise them or correct them. When your child is alert, engaged with you, and not distracted by anything else ask them, 'What does a cow say?' Give them 5 seconds to answer. Regardless of how they answer, don't say anything about it, remain neutral, and move on to a separate activity you would normally engage in with them.", backgroundColor:'white', borderColor:'grey'},
+      logic:[ {total_errors: 2, consec_errors: null, goto: 'pprompt1', day_break: false},
+              {total_success: 2, consec_success: null, goto: 'null', day_break:false} ]
+      },
+
+      {
+      id: 'pprompt1', num_presentations: 3, day_break_if_no_move: false,
+      card: {name: 'Animal Sounds', text: "Find a picture of a cow in a book, use a toy cow if you have one, or draw a picture of a cow for or with your child. Label the animal and talk about the sound the animal makes. Say or sing, 'A cow says moo, a cow says moo, every animal makes a sound, a cow says moo!' You can help your child sustain their attention by varying the way you say moo. Help develop their focus by switching between whispering, speaking loudly, dragging out the sound, or saying it in a silly or sing-songy voice.", backgroundColor:'white', borderColor:'grey'},
+      logic:[ {total_errors: null, consec_errors: null, goto: 'pprompt1', day_break: false},
+              {total_success: 2, consec_success: null, goto: 'pprompt2', day_break:false} ]
+      },
+
+      {
+      id: 'pprompt2', num_presentations: 3, day_break_if_no_move: false,
+      card: {name: 'Animal Sounds', text: "Say or sing the animal sounds verse and then leave off the sound 'moo' at the end. 'A cow says moo, a cow says moo, every animal makes a sound, a cow says ____ (Pause here and immediately tell your child, 'say moo')'' If they say it, cheer and do something your child likes - smiles, tickles, cheering, etc. If they don't say it, try saying 'moo' a few times to get them to repeat the sounds. If they try to say it but it's not quite right, smile and praise them for trying!", backgroundColor:'white', borderColor:'grey'},
+      logic:[ {total_errors: 2, consec_errors: null, goto: 'pprompt2', day_break: false},
+              {total_success: 2, consec_success: null, goto: 'pprompt3', day_break:false} ]
+      },
+
+      {
+      id: 'pprompt3', num_presentations: 3, day_break_if_no_move: false,
+      card: {name: 'Animal Sounds', text: "This time, say or sing the animal sounds verse, leave off the sound 'moo' at the end. Instead, you'll just say 'mmmm' and see if your child can say it on their own without hearing the whole sound 'moo'. It looks like this: 'A cow says moo, a cow says moo, every animal makes a sound, a cow says mmm____ ' If they say it, cheer and do something they like - smiles, tickles, cheering, etc. If they don't say it within a few seconds, say 'Say moo' and playfully encourage them to try to say it. If they try, smile and praise them for their effort! Praise even more if they say it correctly.", backgroundColor:'white', borderColor:'grey'},
+      logic:[ {total_errors: 2, consec_errors: null, goto: 'pprompt3', day_break: false},
+              {total_success: 2, consec_success: null, goto: 'pprompt4', day_break:false} ]
+      },
+
+      {
+      id: 'pprompt4', num_presentations: 3, day_break_if_no_move: false,
+      card: {name: 'Animal Sounds', text: "Your child has been learning that a cow says moo. We'll assess this knowledge and see if your child can answer a question on their own. When your child answers, make sure you don't praise them or correct them. When your child is alert, engaged with you, and not distracted by anything else ask, 'What does a cow say?' Give them 5 seconds to answer. Regardless of how they answer, don't say anything about it, remain neutral, and move on to a separate activity you would normally engage in with them.", backgroundColor:'white', borderColor:'grey'},
+      logic:[ {total_errors: 2, consec_errors: null, goto: 'pprompt4', day_break: false},
+              {total_success: 2, consec_success: null, goto: null, day_break:false} ]
+      }
+ ]}
+]
+
+const independent_activities = [
+  {
+  id: 'ind_act_1', mastered_skills: ['gmi2'], active_skills: ['gmi'],
+  partial_skills: [],
+  frequency_days: 3,
+  card: {name: 'Fill-in-the-Blank!', text: 'Try this activity with your child!', Video: '/Fill-in-blank.mov', backgroundColor:'white', borderColor:'grey'}
+  },
+  {
+  id: 'ind_cow', mastered_skills: [], active_skills: [],
+  partial_skills: [],
+  frequency_days: 4,
+  card: {name: 'Cows!', text: "When saying animal sounds to your child, try adding a playful, physical element to it that you think your child will enjoy. Here's an idea to try: Each time you say 'moo', surprise your child  by 'getting' them with fun and gentle belly tickles. If you do this a few times and they like it, try the again, pausing before you say 'moo'. Give them a chance to say it, and if they do, give them the tickles right away and cheer 'You did it! You said moo!'"}
+  }
+]
+
+
+/*
 const activities = [
 
 {id: 'gmi', name: 'Gross Motor Imitation', prereqs:[], max_daily_cards: 20,
@@ -60,28 +171,14 @@ const activities = [
       id: 'probe', num_presentations: 3, day_break_if_no_move: true,
       card: {name: 'GMI 1', text: 'this is an activity text test', backgroundColor:'white', borderColor:'grey'},
       logic:[ {total_errors: 3, consec_errors: 2, goto: null, day_break: false},
-              {total_success: 3, consec_success: null, goto: 'ppromt1', day_break:false} ]
+              {total_success: 3, consec_success: null, goto: 'pprompt1', day_break:false} ]
       },
 
       {
       id: 'pprompt1', num_presentations: 4, day_break_if_no_move: false,
       card: {name: 'GMI 2', text: 'this is an activity text test 2', backgroundColor:'white', borderColor:'grey'},
       logic:[ {total_errors: 3, consec_errors: null, goto: 'probe', day_break: false},
-              {total_success: null, consec_success: 2, goto: 'pprompt2', day_break:false} ]
-      },
-
-      {
-      id: 'pprompt2', num_presentations: 5, day_break_if_no_move: false,
-      card: {name: 'GMI 3', text: 'this is an activity text test 3', backgroundColor:'white', borderColor:'grey'},
-      logic:[ {total_errors: null, consec_errors: 2, goto: 'pprompt1', day_break: false},
-              {total_success: 4, consec_success: null, goto: 'indep', day_break:false} ]
-      },
-
-      {
-      id: 'indep', num_presentations: 2, day_break_if_no_move: false,
-      card: {name: 'GMI Mastery', text: 'this is mastery activity', backgroundColor:'white', borderColor:'grey'},
-      logic:[ {total_errors: null, consec_errors: 2, goto: 'pprompt2', day_break: true},
-              {total_success: 2, consec_success: null, goto: null, day_break:false} ]
+              {total_success: null, consec_success: 2, goto: null, day_break:false} ]
       }
  ]},
 
@@ -95,7 +192,7 @@ const activities = [
       },
 
       {
-      id: 'pprompt1', num_presentations: 4, day_break_if_no_move: false,
+      id:'pprompt1', num_presentations: 4, day_break_if_no_move: false,
       card: {name: 'GMI2 2', text: 'this is an activity text test 2', backgroundColor:'white', borderColor:'grey'},
       logic:[ {total_errors: 3, consec_errors: null, goto: 'probe', day_break: false},
               {total_success: null, consec_success: 2, goto: 'pprompt2', day_break:false} ]
@@ -121,8 +218,8 @@ const activities = [
       {
       id: 'probe', num_presentations: 3, day_break_if_no_move: true,
       card: {name: 'V 1', text: 'this is an activity text test', backgroundColor:'white', borderColor:'grey'},
-      logic:[ {total_errors: 3, consec_errors: 2, goto: null, day_break: false},
-              {total_success: 3, consec_success: null, goto: 'ppromt1', day_break:false} ]
+      logic:[ {total_errors: 3, consec_errors: 2, goto: null, day_break: true},
+              {total_success: 3, consec_success: null, goto: 'pprompt1', day_break:false} ]
       },
 
       {
@@ -161,7 +258,7 @@ const independent_activities = [
   frequency_days: 4,
   card: {name: 'independent activity', text: 'this is independent anytime activity', backgroundColor:'white', borderColor:'grey'}
   }
-]
+]*/
 
 //////////////////////////HELPER FUNCTIONS/////////////////////////////////
 //
@@ -397,18 +494,21 @@ let CardComponent = React.createClass({
 
       if (val_from_mem !== null){
           var newState = React.addons.update(this.state, {
-                cardState: {$merge: JSON.parse(val_from_mem)}
+                cardState: {$merge: JSON.parse(val_from_mem, JSON.dateParser)}
           });
 
-      this.setState(newState);
+      //REMOVE THIS LINE TO RESET MEMORY LOAD
+      //this.setState(newState);
 
       console.log('cardState after load: ' + JSON.stringify(this.state.cardState));
 
       this.initCardBin();
       console.log('cardBin after init: ' + JSON.stringify(this.state.cardBin));
 
+      let newCards = this.pickNextCards(2);
       var newState = React.addons.update(this.state, {
-        cards:  {$push: this.pickNextCards(2)}
+        cards:  {$push: newCards},
+        cardsToSwipe: {$push: newCards}
       });
 
       this.setState(newState);
@@ -417,6 +517,17 @@ let CardComponent = React.createClass({
 
       } else {
         console.log('Initialized with no selection on disk.');
+
+        this.initCardBin();
+        console.log('cardBin after init: ' + JSON.stringify(this.state.cardBin));
+
+        let newCards = this.pickNextCards(2);
+        var newState = React.addons.update(this.state, {
+            cards:  {$push: newCards},
+            cardsToSwipe: {$push: newCards}
+        });
+
+        this.setState(newState);
       }
 
     } catch (error) {
@@ -428,6 +539,12 @@ let CardComponent = React.createClass({
 
   async _onValueChange(cardState) {
     this.setState({cardState});
+    console.log('cards: ' + JSON.stringify(this.state.cards));
+    console.log('-----------------------------------------');
+    console.log('cardState: ' + JSON.stringify(this.state.cardState));
+    console.log('-----------------------------------------');
+    console.log('cardBin: ' + JSON.stringify(this.state.cardBin));
+
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(cardState));
       console.log('Saved selection to disk: ' + cardState);
@@ -442,7 +559,8 @@ let CardComponent = React.createClass({
       timer: Date.now(),
       cardState: this.initCardState(),
       cardBin: [],
-      cards: [{name:'Welcome back to MindTinder!  Swipe to Start', video:'/Users/davidramsay/mindsproutOther/Fill-in-blank.mov'}]
+      cards: [{name:'Welcome to MindSprout!', text:'The following will be activities for you to try with your child.  If you try them and succeed, swipe right.  If you want to skip one or have trouble, swipe left.  Mindsprout will give you new activies tailored to your level.  For all activities, wait for your child to give you their attention, and act enthusiastically!'}], //, video:'/Users/davidramsay/mindsproutOther/Fill-in-blank.mov'}]
+      cardsToSwipe: [{name:'Welcome back to MindSprout!',text:'The following will be activities for you to try with your child.  If you try them and succeed, swipe right.  If you want to skip one or have trouble, swipe left.  Mindsprout will give you new activies tailored to your level.  For all activities, wait for your child to give you their attention, and act enthusiastically!'}]
     }
   },
 
@@ -470,8 +588,8 @@ let CardComponent = React.createClass({
                         prev_activity_complete_date: null,
                         mastery_date: null,
                         num_skipped: zeroArray,
-                        num_failed: zeroArray,
-                        num_success: zeroArray
+                        num_failed: zeroArray.slice(0),
+                        num_success: zeroArray.slice(0)
         });
     });
 
@@ -641,7 +759,6 @@ let CardComponent = React.createClass({
         if (this.state.cardState[i].state == 'active') {
             let a_id = this.state.cardState[i].activity_id;
             let c_id = this.state.cardState[i].curr_card_id;
-
             if (this.skillNotDailyMax(a_id)) {
                 cardBin.push(activity_to_cardbin_obj(a_id, c_id, this.rankProb(a_id, c_id)));
             }
@@ -686,9 +803,12 @@ let CardComponent = React.createClass({
         }
     }
 
+    let newCards = this.pickNextCards(2);
+
     var newState = React.addons.update(this.state, {
         cardBin: {$set: cardBin},
-        cards:  {$push: this.pickNextCards(2)}
+        cards:  {$push: newCards},
+        cardsToSwipe: {$push: newCards}
     });
 
     this.setState(newState);
@@ -730,6 +850,7 @@ let CardComponent = React.createClass({
             }
         }
     }
+
   return toCardBin;
   },
 
@@ -737,7 +858,6 @@ let CardComponent = React.createClass({
   getCardBinObjFromCard(card){
     //return index of card in cardBin, and cardBin copy, given card
     //so it can be $merged later
-    console.log(card);
 
     for (let i in this.state.cardBin){
         if (this.state.cardBin[i].card == card){
@@ -835,17 +955,18 @@ let CardComponent = React.createClass({
     //update cardStateObj given cardBinObj and logic
     //return True if mastered skill, return False if just changed card
 
-    a_id = cardBinObj.activity_id;
-    c_id = cardBinObj.card_id;
-    trials = cardBinObj.prev_trial_success;
+    let a_id = cardBinObj.activity_id;
+    let c_id = cardBinObj.card_id;
+    let trials = cardBinObj.prev_trial_success;
 
-    let total_successes = trials.reduce(function(a, b) { return a + b; }, 0);
+    let total_success = trials.reduce(function(a, b) { return a + b; }, 0);
     let total_errors = trials.length - total_success;
     let consec_success = consec_number(trials, 1);
     let consec_errors = consec_number(trials, 0);
 
     let curr_card = get_card(a_id, c_id);
     let logic = curr_card.logic;
+
     let last_card = (get_progression_length(a_id) - 1  == get_card_index(a_id, c_id));
     let first_card = (0 == get_card_index(a_id, c_id));
 
@@ -866,7 +987,7 @@ let CardComponent = React.createClass({
     //update cardStateObj - if day_break, set day to today and num to max
     if (day_break) {
         cardStateObj.last_active_date = new Date();
-        cardStateObj.num_cards_on_last_active_date = get_activity(a_id).max_daily_cards; 
+        cardStateObj.num_cards_on_last_active_date = get_activity(a_id).max_daily_cards;
     }
 
     //set current_card to this card
@@ -875,7 +996,7 @@ let CardComponent = React.createClass({
     //if null and first card, setState to not_active and set num to max
     if (first_card && next_card == null){
         cardStateObj.last_active_date = new Date();
-        cardStateObj.num_cards_on_last_active_date = get_activity(a_id).max_daily_cards; 
+        cardStateObj.num_cards_on_last_active_date = get_activity(a_id).max_daily_cards;
         cardStateObj.state = 'not_active';
     }
 
@@ -893,7 +1014,7 @@ let CardComponent = React.createClass({
 
 
   handleCardEvent(card, successFail) {
-    
+
     console.log('--handle cards ' + successFail);
 
     //get copy of cardBin and cardState objects, with index, so we can merge over
@@ -907,7 +1028,11 @@ let CardComponent = React.createClass({
             timer: {$set: Date.now()}
         });
 
-        newState.cards.push(this.pickNextCards(1));
+        let newCard = this.pickNextCards(1);
+        if (newCard != []){
+            newState.cards = newState.cards.concat(newCard);
+            newState.cardsToSwipe = newState.cardsToSwipe.concat(newCard);
+        }
         this.setState(newState);
         return;
     }
@@ -919,7 +1044,7 @@ let CardComponent = React.createClass({
     let cardStateIndex = cardStateReturn[0];
     let cardStateObj = cardStateReturn[1];
 
-    console.log('got cardStateObj: ' + JSON.stringify(cardStateObj));
+    //console.log('got cardStateObj: ' + JSON.stringify(cardStateObj));
     console.log('got cardBinObj: ' + JSON.stringify(cardBinObj));
 
     //handle independent and normal cards differently
@@ -939,7 +1064,12 @@ let CardComponent = React.createClass({
             timer: {$set: Date.now()}
       });
 
-      newState.cards.push(this.pickNextCards(1));
+      let newCard = this.pickNextCards(1);
+        if (newCard != []){
+            newState.cards = newState.cards.concat(newCard);
+            newState.cardsToSwipe = newState.cardsToSwipe.concat(newCard);
+        }
+      this.setState(newState);
       this.setState(newState);
       this._onValueChange(this.state.cardState);
       return;
@@ -961,13 +1091,14 @@ let CardComponent = React.createClass({
             //still showing this card.  No big logic changes, just
             //make sure we haven't hit max_daily_cards for skill
             //(and if so, remove from cardBin)
+            console.log('___keep showing this card');
 
             if (this.checkPassedCardStateObj_NotDailyMax(cardStateObj)){
 
-                console.log('no big logic change, updated cardStateObj: ' + JSON.stringify(cardStateObj));
-                console.log('updated cardBinObj: ' + JSON.stringify(cardBinObj));
-                console.log(cardStateIndex);
-                console.log(cardBinIndex);
+                //console.log('no big logic change, updated cardStateObj: ' + JSON.stringify(cardStateObj));
+                //console.log('updated cardBinObj: ' + JSON.stringify(cardBinObj));
+                //console.log(cardStateIndex);
+                //console.log(cardBinIndex);
                 var newState = React.addons.update(this.state, {
                     cardState: {$splice: [[cardStateIndex, 1, cardStateObj]]},
                     cardBin: {$splice: [[cardBinIndex, 1, cardBinObj]]},
@@ -975,13 +1106,22 @@ let CardComponent = React.createClass({
                     timer: {$set: Date.now()}
                 });
 
-                newState.cardBin.push(this.getIndependentActivitiesNotInCardBin());
-                newState.cards.push(this.pickNextCards(1));
+                let newBinCards = this.getIndependentActivitiesNotInCardBin();
+                if (newBinCards.length > 0){
+                    newState.cardBin = newState.cardBin.concat(newBinCards);
+                }
+                let newCard = this.pickNextCards(1);
+                if (newCard != []){
+                    newState.cards = newState.cards.concat(newCard);
+                    newState.cardsToSwipe = newState.cardsToSwipe.concat(newCard);
+                }
                 this.setState(newState);
                 this._onValueChange(this.state.cardState);
                 return;
 
             } else { //maxed out, remove from cardBin
+
+                console.log('___reached max number of cards in prog for the day');
 
                 var newState = React.addons.update(this.state, {
                     cardState: {$splice: [[cardStateIndex, 1, cardStateObj]]},
@@ -990,31 +1130,40 @@ let CardComponent = React.createClass({
                     timer: {$set: Date.now()}
                 });
 
-                newState.cards.push(this.pickNextCards(1));
+                let newCard = this.pickNextCards(1);
+                if (newCard != []){
+                    newState.cards = newState.cards.concat(newCard);
+                    newState.cardsToSwipe = newState.cardsToSwipe.concat(newCard);
+                }
                 this.setState(newState);
                 this._onValueChange(this.state.cardState);
                 return;
 
             }
 
-        }else { //we have finished a progression, since still_to_show is zero
+        } else { //we have finished a progression, since still_to_show is zero
 
             //figure out logic, update cardState curr_card, mastered
             //if day_break, set num_daily_cards to max_daily_cards
             if (this.cardLogic(cardBinObj, cardStateObj)){
                 //new mastered skill, go through and find new activities
+                console.log('____mastered skill detected- changing skill');
 
                 let new_cardBin_cards = [];
 
-                let mastered_skills = this.getSkills(mastered);
-                let active_skills = this.getSkills(active);
+                let mastered_skills = this.getSkills('mastered');
+                let active_skills = this.getSkills('active');
 
                 for (let i in this.state.cardState){
 
-                    let prereqs = get_activity(this.state.cardState[i].activity_id);
+                    let act = get_activity(this.state.cardState[i].activity_id);
+                    let prereqs = [];
+                    if (_.has(act, 'prereqs')){
+                        prereqs = prereqs.concat(act.prereqs);
+                    }
 
                     if((prereqs.indexOf(cardStateObj.activity_id) > -1) &&
-                       (prereqs.length === _.interesection(prereqs, mastered_skills.push(cardStateObj.activity_id)).length)) {
+                       (prereqs.length === _.intersection(prereqs, mastered_skills.concat(cardStateObj.activity_id)).length)) {
                       //found a skill that had this newly mastered skill as a
                       //prereq and we also have all of the other required
                       //skills
@@ -1034,26 +1183,58 @@ let CardComponent = React.createClass({
                     timer: {$set: Date.now()}
                 });
 
-                newState.cardBin.push(new_cardBin_cards);
-                newState.cardBin.push(this.getIndependentActivitiesNotInCardBin());
-                newState.cards.push(this.pickNextCards(1));
+                console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>');
+                console.log('newCardBin cards = ' + JSON.stringify(new_cardBin_cards));
+                if (new_cardBin_cards.length > 0){
+                    newState.cardBin = newState.cardBin.concat(new_cardBin_cards);
+                }
+                let newBinCards = this.getIndependentActivitiesNotInCardBin();
+                if (newBinCards.length > 0){
+                    newState.cardBin = newState.cardBin.concat(newBinCards);
+                }
+                let newCard = this.pickNextCards(1);
+                if (newCard != []){
+                    newState.cards = newState.cards.concat(newCard);
+                    newState.cardsToSwipe = newState.cardsToSwipe.concat(newCard);
+                }
                 this.setState(newState);
                 this._onValueChange(this.state.cardState);
                 return;
             }else{
 
-            var newState = React.addons.update(this.state, {
-                cardState: {$splice: [[cardStateIndex, 1, cardStateObj]]},
-                cardBin: {$splice: [[cardBinIndex, 1]]},
-                cards: {$splice: [[0, 1]]},
-                timer: {$set: Date.now()}
-            });
+                console.log('_____not mastered but finished skill');
 
-            newState.cardBin.push(this.getIndependentActivitiesNotInCardBin());
-            newState.cards.push(this.pickNextCards(1));
-            this.setState(newState);
-            this._onValueChange(this.state.cardState);
-            return;
+                var newState = React.addons.update(this.state, {
+                    cardState: {$splice: [[cardStateIndex, 1, cardStateObj]]},
+                    cardBin: {$splice: [[cardBinIndex, 1]]},
+                    cards: {$splice: [[0, 1]]},
+                    timer: {$set: Date.now()}
+                });
+                console.log('cardBin without cardBinIndex: ' + JSON.stringify(newState.cardBin));
+
+                let newBinCards = this.getIndependentActivitiesNotInCardBin();
+
+                if (this.skillNotDailyMax(cardStateObj.activity_id)) {
+                    let newCard = activity_to_cardbin_obj(cardStateObj.activity_id, cardStateObj.curr_card_id, cardBinObj.probability_rank);
+                    if (newCard != null){
+                        newBinCards.push(newCard);
+                    }
+                }
+
+                if (newBinCards.length > 0){
+                    console.log('newbin>0');
+                    newState.cardBin = newState.cardBin.concat(newBinCards);
+                }
+
+                let newCard = this.pickNextCards(1);
+                if (newCard != []){
+                    newState.cards = newState.cards.concat(newCard);
+                    newState.cardsToSwipe = newState.cardsToSwipe.concat(newCard);
+                }
+
+                this.setState(newState);
+                this._onValueChange(this.state.cardState);
+                return;
 
             }
         }
@@ -1083,8 +1264,8 @@ let CardComponent = React.createClass({
   pickNextCards(numCards){
 
     console.log('--pick cards');
-    console.log('cardbin: ' + JSON.stringify(this.state.cardBin));
-    console.log('cards-pre: ' + JSON.stringify(this.state.cards));
+    //console.log('cardbin: ' + JSON.stringify(this.state.cardBin));
+    //console.log('cards-pre: ' + JSON.stringify(this.state.cards));
 
     //------------CREATE PROB ARRAY---------------
 
@@ -1108,8 +1289,7 @@ let CardComponent = React.createClass({
                 curr_cards_to_show -= 1;
             }
         }
-
-        cards_to_show.push(curr_cards_to_show);
+     cards_to_show.push(curr_cards_to_show);
 
         if (curr_cards_to_show <= 0){
             prob_scores.push(0);
@@ -1148,7 +1328,7 @@ let CardComponent = React.createClass({
         }
     }
 
-    console.log('cards-chosen: ' + JSON.stringify(final_cards));
+    //console.log('cards-chosen: ' + JSON.stringify(final_cards));
     return final_cards;
   },
 
@@ -1166,7 +1346,7 @@ let CardComponent = React.createClass({
   skippedOrFailed(time_ms) {
 
     let thresh = 1000*20; //20 seconds
-
+    thresh = 2;
     if (time_ms > thresh){
         return 'failed';
     }else{
@@ -1176,11 +1356,11 @@ let CardComponent = React.createClass({
 
   render() {
     console.log('--render');
-    console.log('cardBin: ' + JSON.stringify(this.state.cardBin));
+    //console.log('cardBin: ' + JSON.stringify(this.state.cardBin));
     return (
       <SwipeCards
-        cards={this.state.cards}
-        loop={true}
+        cards={this.state.cardsToSwipe}
+        loop={false}
 
         renderCard={(cardData) => <Card {...cardData} />}
         renderNoMoreCards={() => <NoMoreCards />}
@@ -1203,7 +1383,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 15,
     width: 300,
-    height: 500,
+    height: 400,
     overflow: 'hidden',
     borderColor: 'grey',
     backgroundColor: 'white',
@@ -1219,6 +1399,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 20,
+    textAlign: 'center',
     paddingTop: 10,
     paddingBottom: 10
   },

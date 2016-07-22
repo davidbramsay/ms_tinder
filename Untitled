@@ -1,0 +1,73 @@
+
+const activities = [
+
+{id: 'clap', name: 'Clap Your Hands', prereqs:[], max_daily_cards: 20,
+ progression:[
+      {
+      id: 'probe', num_presentations: 3, day_break_if_no_move: true,
+      card: {name: 'Clap Your Hands!', text: 'Say "#clap1clap your hands" and see if your child can #clap2clap on their own. Don't show them how to do it yet and don't praise them if they get it right. Did they #clap2clap on their own within 5 seconds?', backgroundColor:'white', borderColor:'grey'},
+      logic:[ {total_errors: 3, consec_errors: 2, goto: null, day_break: false},
+              {total_success: 3, consec_success: null, goto: 'pprompt1', day_break:false} ]
+      },
+
+      {
+      id: 'mastery', num_presentations: 4, day_break_if_no_move: false,
+      card: {name: 'GMI 2- mastery', text: 'this is an activity text test 2', backgroundColor:'white', borderColor:'grey'},
+      logic:[ {total_errors: 3, consec_errors: null, goto: 'probe', day_break: false},
+              {total_success: null, consec_success: 2, goto: null, day_break:false} ]
+      }
+ ]},
+
+{id: 'cow', name: 'Cow Sounds', prereqs:[], max_daily_cards: 20,
+ progression:[
+      {
+      id: 'probe', num_presentations: 3, day_break_if_no_move: false,
+      card: {name: 'Animal Sounds', text: "First we'll assess whether your child knows their animal sounds. We'll ask the same question a few times. So, when your child answers, make sure you don't praise them or correct them. When your child is alert, engaged with you, and not distracted by anything else ask them, 'What does a cow say?' Give them 5 seconds to answer. Regardless of how they answer, don't say anything about it, remain neutral, and move on to a separate activity you would normally engage in with them", backgroundColor:'white', borderColor:'grey'},
+      logic:[ {total_errors: 2, consec_errors: null, goto: 'pprompt1', day_break: false},
+              {total_success: 3, consec_success: null, goto: 'null', day_break:false} ]
+      },
+
+      {
+      id: 'pprompt1', num_presentations: 3, day_break_if_no_move: false,
+      card: {name: 'Animal Sounds', text: ""Find a picture of a cow in a book, use a toy cow if you have one, or draw a picture of a cow for or with your child. Label the animal and talk about the sound the animal makes. Say or sing, 'A cow says moo, a cow says moo, every animal makes a sound, a cow says moo!' You can help your child sustain their attention by varying the way you say moo. Help develop their focus by switching between whispering, speaking loudly, dragging out the sound, or saying it in a silly or sing-songy voice.", backgroundColor:'white', borderColor:'grey'},
+      logic:[ {total_errors: 2, consec_errors: null, goto: 'pprompt1', day_break: false},
+              {total_success: 2, consec_success: null, goto: 'pprompt2', day_break:false} ]
+      },
+
+      {
+      id: 'pprompt2', num_presentations: 3, day_break_if_no_move: false,
+      card: {name: 'Animal Sounds', text: "Say or sing the animal sounds verse and then leave off the sound 'moo' at the end. 'A cow says moo, a cow says moo, every animal makes a sound, a cow says ____ (Pause here and immediately tell your child, 'say moo')'' If they say it, cheer and do something your child likes - smiles, tickles, cheering, etc. If they don't say it, try saying 'moo' a few times to get them to repeat the sounds. If they try to say it but it's not quite right, smile and praise them for trying!", backgroundColor:'white', borderColor:'grey'},
+      logic:[ {total_errors: 2, consec_errors: null, goto: 'pprompt2', day_break: false},
+              {total_success: 2, consec_success: null, goto: 'pprompt3', day_break:false} ]
+      },
+
+      {
+      id: 'pprompt3', num_presentations: 3, day_break_if_no_move: false,
+      card: {name: 'Animal Sounds', text: "This time, say or sing the animal sounds verse, leave off the sound 'moo' at the end. Instead, you'll just say 'mmmm' and see if your child can say it on their own without hearing the whole sound 'moo'. It looks like this: 'A cow says moo, a cow says moo, every animal makes a sound, a cow says mmm____ ' If they say it, cheer and do something they like - smiles, tickles, cheering, etc. If they don't say it within a few seconds, say 'Say moo' and playfully encourage them to try to say it. If they try, smile and praise them for their effort! Praise even more if they say it correctly.", backgroundColor:'white', borderColor:'grey'},
+      logic:[ {total_errors: 2, consec_errors: null, goto: 'pprompt3', day_break: false},
+              {total_success: 2, consec_success: null, goto: 'pprompt4', day_break:false} ]
+      },
+
+      {
+      id: 'pprompt4', num_presentations: 3, day_break_if_no_move: false,
+      card: {name: 'Animal Sounds', text: "Your child has been learning that a cow says moo. We'll assess this knowledge and see if your child can answer a question on their own. When your child answers, make sure you don't praise them or correct them. When your child is alert, engaged with you, and not distracted by anything else ask, 'What does a cow say?' Give them 5 seconds to answer. Regardless of how they answer, don't say anything about it, remain neutral, and move on to a separate activity you would normally engage in with them.", backgroundColor:'white', borderColor:'grey'},
+      logic:[ {total_errors: 2, consec_errors: null, goto: 'pprompt4', day_break: false},
+              {total_success: 2, consec_success: null, goto: null, day_break:false} ]
+      }
+ ]}
+]
+
+const independent_activities = [
+  {
+  id: 'ind_act_1', mastered_skills: ['gmi'], active_skills: ['gmi2'],
+  partial_skills: [{progression_id: 'gmi2', card_id: 'pprompt2'}],
+  frequency_days: 3,
+  card: {name: 'independent activity', text: 'this is independent gmi2 activity', backgroundColor:'white', borderColor:'grey'}
+  },
+  {
+  id: 'ind_cow', mastered_skills: [], active_skills: [],
+  partial_skills: [],
+  frequency_days: 4,
+  card: {name: 'Cows!', text: "When saying animal sounds to your child, try adding a playful, physical element to it that you think your child will enjoy. Here's an idea to try: Each time you say 'moo', surprise your child  by 'getting' them with fun and gentle belly tickles. If you do this a few times and they like it, try the again, pausing before you say 'moo'. Give them a chance to say it, and if they do, give them the tickles right away and cheer 'You did it! You said moo!'"}
+  }
+]
